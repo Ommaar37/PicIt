@@ -77,7 +77,7 @@ WSGI_APPLICATION = 'PicIt.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'database.sql',
+        'NAME': 'PicIt',
 	'USER': 'root',
 	'PASSWORD': '1234',
 	'HOST': 'localhost',

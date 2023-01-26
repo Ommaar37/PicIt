@@ -1,4 +1,3 @@
-CREATE DATABASE PicIt;
 
 USE PicIt;
 
