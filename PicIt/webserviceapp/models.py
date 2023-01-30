@@ -30,8 +30,8 @@ class Carpetas(models.Model):
 
 class Follow(models.Model):
     idfollow = models.IntegerField(db_column='idFollow', primary_key=True)  # Field name made lowercase.
-    idseguidor = models.ForeignKey('Usuarios', models.DO_NOTHING, db_column='idSeguidor')  # Field name made lowercase.
-    idseguido = models.ForeignKey('Usuarios', models.DO_NOTHING, db_column='idSeguido')  # Field name made lowercase.
+    idfollower = models.ForeignKey('Usuarios', models.DO_NOTHING, db_column='idFollower')  # Field name made lowercase.
+    idfollowing = models.ForeignKey('Usuarios', models.DO_NOTHING, db_column='idFollowing')  # Field name made lowercase.
 
     class Meta:
         managed = False
