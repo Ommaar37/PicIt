@@ -23,8 +23,8 @@ urlpatterns = [
     path('test', views.pagina_de_prueba),
     path('publicaciones', views.mostrar_publicaciones),
     path('publicar', views.subir_publicacion),
-    path('publicaciones/<int:id_solicitado>/like', views.obtener_detalle_publicacion),
-    path('darLike/<int:publicacion_id', views.dar_like),
+    path('publicacion/<int:id_solicitado>', views.obtener_detalle_publicacion),
+    path('publicacion/<int:publicacion_id>/like', views.dar_like),
     path('tags', views.obtener_tags),
     path('likes', views.obtener_like)
 ]
