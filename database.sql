@@ -1,4 +1,3 @@
-
 USE PicIt;
 
 CREATE TABLE Usuarios(
