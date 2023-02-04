@@ -20,5 +20,11 @@ from webserviceapp import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('test', views.pagina_de_prueba)
+    path('test', views.pagina_de_prueba),
+    path('publicaciones', views.mostrar_publicaciones),
+    path('publicar', views.subir_publicacion),
+    path('publicaciones/<int:id_solicitado>/like', views.obtener_detalle_publicacion),
+    path('darLike/<int:publicacion_id', views.dar_like),
+    path('tags', views.obtener_tags),
+    path('likes', views.obtener_like)
 ]
