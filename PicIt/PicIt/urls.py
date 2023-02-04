@@ -26,5 +26,12 @@ urlpatterns = [
     path('publicacion/<int:id_solicitado>', views.obtener_detalle_publicacion),
     path('publicacion/<int:publicacion_id>/like', views.dar_like),
     path('tags', views.obtener_tags),
-    path('likes', views.obtener_like)
+    path('likes', views.obtener_like),
+    path('folders', views.crear_carpeta),
+    path('folders', views.mostrar_carpetas),
+    path('folders/<int:carpeta_id>', views.anadir_publicacion_carpeta),
+    path('folders/<int:carpeta_id', views.mostrar_publicaciones_carpeta),
+    path('users', views.listar_amigos),
+    path('mensajes', views.enviar_mensaje),
+    path('mensajes', views.mostrar_mensajes_chat_concreto)
 ]
