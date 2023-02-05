@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import Publicaciones, Usuarios, Tags, Likes
+from .models import Publicaciones, Usuarios, Tags, Likes, Carpetas, Mensaje, Follow
 import json
 # Create your views here.
 @csrf_exempt
@@ -91,12 +91,12 @@ def crear_carpeta (request):
 	return JsonResponse({'status': 'ok'})
 
 def mostrar_carpetas (request):
-	lista = Carpetas.objects.all()
+	lista=Carpetas.objects.all()
 	respuesta_final = []
-	for fila_sql in lista:
+	for fila_carpetas_sql in lista:
 		diccionario = {}
-		diccionario['Id'] = fila_sql.id
-		diccionario['Name'] = fila_sql.name
+		diccionario['Id'] = fila_carpetas_sql.id
+		diccionario['Nombre'] = fila_carpetas_sql.nombre
 		respuesta_final.append(diccionario)
 	return JsonResponse(respuesta_final, safe=False)
 
@@ -112,15 +112,15 @@ def anadir_publicacion_carpeta (request, carpeta_id):
 	return JsonResponse({'status': 'ok'})
 
 def mostrar_publicaciones_carpeta (request, id_solicitado):
-	carpeta = Folders.object.get(id = id_solicitado)
-	publicaciones = carpeta.Publicaciones_set.all()
+	carpeta = Carpetas.objects.get(id = id_solicitado)
+	publicacion = carpeta.Publicaciones_set.all()
 	lista_publicaciones = []
-	for fila_publicaciones_sql in publicaciones:
+	for fila_publicaciones_sql in publicacion:
 		diccionario = {}
 		diccionario['Id'] = fila_publicaciones_sql.id
 		diccionario['Imagen'] = fila_publicaciones_sql.imagen
 		diccionario['Titulo'] = fila_publicaciones_sql.titulo
-		diccionario['Descripción'] = fila_publicaciones_sql.descripción
+		diccionario['Descripción'] = fila_publicaciones_sql.descripcion
 		diccionario['Fecha'] = fila_publicaciones_sql.fecha
 		lista_publicaciones.append(diccionario)
 	resultado = {
