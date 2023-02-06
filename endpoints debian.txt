@@ -1,0 +1,117 @@
+-------------------------------------------------------------
+----- REGISTRAR -----
+def registrarUsuario(request):
+    if request.method != 'POST':
+        return None
+    try:
+        json_peticion = json.loads(request.body)
+        usuario = Usuario()
+        usuario.nombre = json_peticion['name']
+        usuario.email = json_peticion['email']
+        usuario.contrasena = json_peticion['password']
+
+        if usuario.nombre == '' or usuario.email == '' or usuario.contrasena == '':
+            return JsonResponse({"status": "Faltan parámetros"}, status=400)
+        else:
+            if Usuario.objects.filter(nombre=usuario.nombre).exists():
+                return JsonResponse({"status": "Nombre de usuario ya existente"}, status=409)
+            else:
+                if Usuario.objects.filter(email=usuario.email).exists():
+                    return JsonResponse({"status": "Email ya existente"}, status=409)
+                else:
+                    usuario.set_password(json_peticion['password'])
+                    payload = {
+                        'nombre': usuario.nombre,
+                        'email': usuario.email
+                    }
+                    secret = 'messifiltrado'
+                    token = jwt.encode(payload, secret, algorithm='HS256')
+                    usuario.token = token
+                    usuario.save()
+                    return JsonResponse({"status": "Bien."}, status=201)
+    except (JSONDecodeError, Exception):
+        return JsonResponse({"status": "Error"})
+
+
+-------------------------------------------------------------
+----- SESIÓN ----- 
+
+-------------------------------------------------------------
+----- OBTENER DATOS DEL PERFIL DE EDICIÓN -----
+
+def datos_editar(request, id_solicitado):
+	datos = Usuarios.objects.get(id = id_solicitado)
+	resultado = {
+		'Nombre': datos.nombre,
+		'NombreUser': datos.User,
+		'Email': datos.Email,
+		'Contrasena': datos.Contraseña,
+		'Apell': datos.Apellido,
+		'Edad': datos.Edad,
+		'Genero': datos.Genero,
+		'Pais': datos.Pais,
+		'Biografia': datos.Biografia
+	}
+	return JsonResponse(resultado, json_dumps_params={'ensure_ascii':False});
+
+-------------------------------------------------------------
+----- APLICAR CAMBIOS DE LA EDICIÓN ----- (bien )
+
+def aplicar_edicion(request):
+	if request.method !='POST':
+		return None
+	tokenRecibido = request.headers.get('Auth-Token')
+	json_peticion = json.loads(request.body)
+	usuario = Usuarios()
+	usuario.Nombre = json_peticion['name']
+	usuario.Apellidos = json_peticion['username']
+	usuario.User = json_peticion['user']
+	usuario.Email = json_peticion['email']
+	usuario.Contraseña = json_peticion['password']
+	usuario.Edad = json_peticion['edad']
+	usuario.Genero = json_peticion['genero']
+	usuario.Pais = json_peticion['pais']
+	usuario.Biografia = json_peticion['biografia']
+	usuario.save()
+	return JsonResponse({"status": "ok"})
+
+-------------------------------------------------------------
+----- OBTÉN INFORMACIÓN DE CAULQUIER USER -----
+def datos_user(request, id_solicitado):
+	datos = Usuarios.objects.get(id = id_solicitado) 
+	resultado = {
+		'Nombre': datos.nombre,
+		'NombreUser': datos.User,
+		'Email': datos.Email,
+		'Contrasena': datos.Contraseña,
+		'Apell': datos.Apellido,
+		'Edad': datos.Edad,
+		'Genero': datos.Genero,
+		'Pais': datos.Pais,
+		'Biografia': datos.Biografia
+	}
+	return JsonResponse(resultado, json_dumps_params={'ensure_ascii':False});
+
+
+-------------------------------------------------------------
+----- INDICA QUIEN TE SIGUE -----
+ 
+
+-------------------------------------------------------------
+----- INDICA QUE SIGUES A X USER -----
+def ind_sigues(request, id_solicitado):
+	 datos = Usuarios.objects.all(id = id_solicitado)
+	resultado = {
+		'Nombre': datos.nombre,
+		'NombreUser':
+		'Email':
+		'Contrasena':
+		'Apell':
+		'Edad':
+		'Genero':
+		'Pais':
+		'Biografia':
+	}
+	return JsonResponse(resultado, json_dumps_params={'ensure_ascii': False})
+
+
