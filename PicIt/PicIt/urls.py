@@ -33,5 +33,11 @@ urlpatterns = [
     path('folders/<int:id_solicitado>/publicaciones', views.mostrar_publicaciones_carpeta),
     path('users', views.listar_amigos),
     path('mensajes', views.enviar_mensaje),
-    path('mensajes', views.mostrar_mensajes_chat_concreto)
+    path('mensajes', views.mostrar_mensajes_chat_concreto),
+    path('registro', views.registrarUsuario),
+    path('editarDatos/<int:id_solicitado>', views.datos_editar),
+    path('aplicarCambioDatos', views.aplicar_edicion),
+    path('datosUsuario/<int:id_solicitado>', views.datos_user),
+    path('seguidores/<int:id_solicitado>', views.seguidores)
+    
 ]

@@ -10,7 +10,7 @@ CREATE TABLE Usuarios(
     Genero varchar(20) null,
     Email varchar(100) not null,
     Contrasena varchar(30) not null,
-    TokenSession varchar(100) not null
+    TokenSession varchar(300) not null
     
 );
 
@@ -33,19 +33,22 @@ CREATE TABLE Carpetas(
     idUser int not null
 );
 
+CREATE TABLE Tags(
+    id int primary key auto_increment not null,
+    Nombre varchar(50) not null
+);
+
 CREATE TABLE Publicaciones(
     id int primary key auto_increment not null,
     Titulo varchar(50) not null,
     Fecha date not null,
     Descripcion varchar(500) not null,
     Imagen  varchar(10000) not null,
-    idUser int not null
+    idUser int not null,
+    idTag int not null
 );
 
-CREATE TABLE Tags(
-    id int primary key auto_increment not null,
-    Nombre varchar(50) not null
-);
+
 
 CREATE TABLE Likes(
     id int primary key auto_increment not null,
@@ -59,11 +62,7 @@ CREATE TABLE Public_carpetas(
     idCarpeta int not null
 );
 
-CREATE TABLE AsignarTags(
-    idAsignacion int not null auto_increment primary key,
-    idTag int not null,
-    idPublic int not null
-);
+
 
 ALTER TABLE Mensaje ADD CONSTRAINT FOREIGN KEY (idUser) REFERENCES Usuarios(id);
 
@@ -73,6 +72,7 @@ ALTER TABLE Follow ADD CONSTRAINT FOREIGN KEY (idSeguido) REFERENCES Usuarios(id
 ALTER TABLE Carpetas ADD CONSTRAINT FOREIGN KEY (idUser) REFERENCES Usuarios(id);
 
 ALTER TABLE Publicaciones ADD CONSTRAINT FOREIGN KEY (idUser) REFERENCES Usuarios(id);
+ALTER TABLE Publicaciones ADD CONSTRAINT FOREIGN KEY (idTag) REFERENCES Tags(id);
 
 ALTER TABLE Likes ADD CONSTRAINT FOREIGN KEY (idUser) REFERENCES Usuarios(id);
 ALTER TABLE Likes ADD CONSTRAINT FOREIGN KEY (idPublic) REFERENCES Publicaciones(id);
@@ -80,8 +80,6 @@ ALTER TABLE Likes ADD CONSTRAINT FOREIGN KEY (idPublic) REFERENCES Publicaciones
 ALTER TABLE Public_carpetas ADD CONSTRAINT FOREIGN KEY (idPublic) REFERENCES Publicaciones(id);
 ALTER TABLE Public_carpetas ADD CONSTRAINT FOREIGN KEY (idCarpeta) REFERENCES Carpetas(id);
 
-ALTER TABLE AsignarTags ADD CONSTRAINT FOREIGN KEY (idTag) REFERENCES Tags(id);
-ALTER TABLE AsignarTags ADD CONSTRAINT FOREIGN KEY (idPublic) REFERENCES Publicaciones(id);
 
 INSERT INTO Usuarios (id, NombreUser, Nombre, Apellidos, Biografia, Pais, Genero, Email, Contrasena, TokenSession) VALUES 
 ("1", "Juan123", "Juan", "", "", "", "", "juan.perez@ejemplo.com", "JuanPerez123", "abc123"),
@@ -108,21 +106,6 @@ INSERT INTO Carpetas (id, Nombre, idUser) VALUES
 ("2", "Verano", "1"),
 ("3", "Viajes", "2");
 
-INSERT INTO Publicaciones (id, Titulo, Fecha, Descripcion, Imagen, idUser) VALUES 
-("1", "Conejo", curdate(), "Conejo tomando el sol antes de surfear", "conejo.png", "1"),
-("2", "Coche", curdate(), "Coche de carreras", "coche.png", "1"),
-("3", "Tatuajes brazo", curdate(), "manga entera de tatuajes en el brazo", "tatuaje.png", "1"),
-("4", "Paisaje natural", curdate(), "Atardecer en el campo", "paisaje.png", "1"),
-("5", "Comida desayuno", curdate(), "Tortitas con sirope de chocolate", "comida.png", "1"),
-("6", "Concierto de verano", curdate(), "Concierto de un festival", "concierto.png", "2"),
-("7", "Personaje de anime", curdate(), "Mikasa en Attack On Taitan", "anime.png", "2"),
-("8", "Carrera", curdate(), "Carrera de atletismo", "deportes.png", "2"),
-("9", "Outfit boda", curdate(), "Conjunto para invitado de boda", "ropa.png", "2"),
-("10", "Cuchara", curdate(), "Dibujo de una cuchara", "dibujo.png", "2"),
-("11", "Florencia", curdate(), "Catedral de Santa Maria del Fiore", "arquitectura.png", "2"),
-("12", "Salón", curdate(), "Decoración de salón en tonos claros", "decoracion.png", "2"),
-("13", "Superman", curdate(), "Una frase de Superman", "frase.png", "2"),
-("14", "Animales de papel", curdate(), "Animales cuadrados hechos doblando papel", "manualidad.png", "2");
 
 INSERT INTO Tags (id, Nombre) VALUES 
 ("1", "Animales"),
@@ -142,6 +125,23 @@ INSERT INTO Tags (id, Nombre) VALUES
 ("15", "Paisajes"),
 ("16", "Ropa"),
 ("17", "Tatuajes");
+
+
+INSERT INTO Publicaciones (id, Titulo, Fecha, Descripcion, Imagen, idUser, idTag) VALUES 
+("1", "Conejo", curdate(), "Conejo tomando el sol antes de surfear", "conejo.png", "1","1"),
+("2", "Coche", curdate(), "Coche de carreras", "coche.png", "1","1"),
+("3", "Tatuajes brazo", curdate(), "manga entera de tatuajes en el brazo", "tatuaje.png", "1","1"),
+("4", "Paisaje natural", curdate(), "Atardecer en el campo", "paisaje.png", "1","1"),
+("5", "Comida desayuno", curdate(), "Tortitas con sirope de chocolate", "comida.png", "1","1"),
+("6", "Concierto de verano", curdate(), "Concierto de un festival", "concierto.png", "2","1"),
+("7", "Personaje de anime", curdate(), "Mikasa en Attack On Taitan", "anime.png", "2","1"),
+("8", "Carrera", curdate(), "Carrera de atletismo", "deportes.png", "2","1"),
+("9", "Outfit boda", curdate(), "Conjunto para invitado de boda", "ropa.png", "2","1"),
+("10", "Cuchara", curdate(), "Dibujo de una cuchara", "dibujo.png", "2","1"),
+("11", "Florencia", curdate(), "Catedral de Santa Maria del Fiore", "arquitectura.png", "2","1"),
+("12", "Salón", curdate(), "Decoración de salón en tonos claros", "decoracion.png", "2","1"),
+("13", "Superman", curdate(), "Una frase de Superman", "frase.png", "2","1"),
+("14", "Animales de papel", curdate(), "Animales cuadrados hechos doblando papel", "manualidad.png", "2","1");
 
 INSERT INTO Likes (id, idUser, idPublic) VALUES 
 ("1", "1", "1"),
@@ -166,31 +166,3 @@ INSERT INTO Public_carpetas (idPublic_carpeta, idPublic, idCarpeta) VALUES
 ("8", "8", "3"),
 ("9", "9", "3"),
 ("10", "10", "3");
-
-INSERT INTO AsignarTags (idAsignacion, idTag, idPublic) VALUES 
-("1", "1", "1"),
-("2", "14", "1"),
-("3", "15", "1"),
-("4", "5", "2"),
-("5", "8", "2"),
-("6", "4", "3"),
-("7", "9", "3"),
-("8", "17", "3"),
-("9", "14", "4"),
-("10", "15", "4"),
-("11", "6", "5"),
-("12", "13", "6"),
-("13", "2", "7"),
-("14", "4", "7"),
-("15", "9", "7"),
-("16", "8", "8"),
-("17", "16", "9"),
-("18", "9", "10"),
-("19", "3", "11"),
-("20", "4", "11"),
-("21", "15", "11"),
-("22", "3", "12"),
-("23", "7", "12"),
-("24", "10", "13"),
-("25", "11", "13"),
-("26", "12", "14");

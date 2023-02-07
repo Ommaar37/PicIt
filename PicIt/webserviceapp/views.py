@@ -3,6 +3,10 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import Publicaciones, Usuarios, Tags, Likes, Carpetas, Mensaje, Follow
 import json
+import jwt
+from json import JSONDecodeError
+from django.contrib.auth.hashers import check_password
+
 # Create your views here.
 @csrf_exempt
 def pagina_de_prueba(request):
@@ -30,7 +34,7 @@ def obtener_detalle_publicacion(request, id_solicitado):
 		'fecha': publicacion.fecha
 	}
 	return JsonResponse(resultado, json_dumps_params={'ensure_ascii':False});
-	
+@csrf_exempt
 def subir_publicacion(request):
 	if request.method !='POST':
 		return None
@@ -51,7 +55,7 @@ def obtener_tags(request):
 	
 	for fila_tags_sql in lista:
 		diccionario = {}
-		diccionario['Nombre'] = fila_sql.nombre
+		diccionario['Nombre'] = fila_tags_sql.nombre
 		respuesta_final.append(diccionario)
 	return JsonResponse(respuesta_final, safe=False)
 
@@ -132,7 +136,9 @@ def mostrar_publicaciones_carpeta (request, id_solicitado):
 	return JsonResponse(resultado, json_dimps_params={'ensure_ascii': False})
 
 def listar_amigos (request):
-	lista = friends.objects.all()
+	lista = Follow.objects.all()
+	tokenRecibido = request.headers.get('Auth-Token')
+	lista.idseguido = Usuarios.objects.get(tokensession = tokenRecibido)
 	respuesta_final = []
 	for fila_sql in lista:
 		diccionario = {}
@@ -170,14 +176,13 @@ def mostrar_mensajes_chat_concreto (request, id_solicitado):
 	return JsonResponse(resultado, json_dimps_params={'ensure_ascii': False})
 
 
--------------------------------------------------------------
------ REGISTRAR -----
+@csrf_exempt
 def registrarUsuario(request):
     if request.method != 'POST':
         return None
     try:
         json_peticion = json.loads(request.body)
-        usuario = Usuario()
+        usuario = Usuarios()
         usuario.nombre = json_peticion['name']
         usuario.email = json_peticion['email']
         usuario.contrasena = json_peticion['password']
@@ -185,10 +190,10 @@ def registrarUsuario(request):
         if usuario.nombre == '' or usuario.email == '' or usuario.contrasena == '':
             return JsonResponse({"status": "Faltan parámetros"}, status=400)
         else:
-            if Usuario.objects.filter(nombre=usuario.nombre).exists():
+            if Usuarios.objects.filter(nombre=usuario.nombre).exists():
                 return JsonResponse({"status": "Nombre de usuario ya existente"}, status=409)
             else:
-                if Usuario.objects.filter(email=usuario.email).exists():
+                if Usuarios.objects.filter(email=usuario.email).exists():
                     return JsonResponse({"status": "Email ya existente"}, status=409)
                 else:
                     usuario.set_password(json_peticion['password'])
@@ -196,38 +201,31 @@ def registrarUsuario(request):
                         'nombre': usuario.nombre,
                         'email': usuario.email
                     }
+                   
                     secret = 'messifiltrado'
                     token = jwt.encode(payload, secret, algorithm='HS256')
-                    usuario.token = token
+                    usuario.tokensession = token
                     usuario.save()
                     return JsonResponse({"status": "Bien."}, status=201)
     except (JSONDecodeError, Exception):
         return JsonResponse({"status": "Error"})
 
 
--------------------------------------------------------------
------ SESIÓN ----- 
-
--------------------------------------------------------------
------ OBTENER DATOS DEL PERFIL DE EDICIÓN -----
 
 def datos_editar(request, id_solicitado):
 	datos = Usuarios.objects.get(id = id_solicitado)
 	resultado = {
 		'Nombre': datos.nombre,
-		'NombreUser': datos.User,
-		'Email': datos.Email,
-		'Contrasena': datos.Contraseña,
-		'Apell': datos.Apellido,
-		'Edad': datos.Edad,
-		'Genero': datos.Genero,
-		'Pais': datos.Pais,
-		'Biografia': datos.Biografia
+		'NombreUser': datos.nombreuser,
+		'Email': datos.email,
+		'Contrasena': datos.contrasena,
+		'Genero': datos.genero,
+		'Pais': datos.pais,
+		'biografia': datos.biografia,
+		'Apellidos': datos.apellidos
 	}
 	return JsonResponse(resultado, json_dumps_params={'ensure_ascii':False});
 
--------------------------------------------------------------
------ APLICAR CAMBIOS DE LA EDICIÓN ----- (bien )
 
 def aplicar_edicion(request):
 	if request.method !='POST':
@@ -247,41 +245,20 @@ def aplicar_edicion(request):
 	usuario.save()
 	return JsonResponse({"status": "ok"})
 
--------------------------------------------------------------
------ OBTÉN INFORMACIÓN DE CAULQUIER USER -----
 def datos_user(request, id_solicitado):
 	datos = Usuarios.objects.get(id = id_solicitado) 
 	resultado = {
 		'Nombre': datos.nombre,
-		'NombreUser': datos.User,
-		'Email': datos.Email,
-		'Contrasena': datos.Contraseña,
-		'Apell': datos.Apellido,
-		'Edad': datos.Edad,
-		'Genero': datos.Genero,
-		'Pais': datos.Pais,
-		'Biografia': datos.Biografia
+		'NombreUser': datos.nombreuser
 	}
 	return JsonResponse(resultado, json_dumps_params={'ensure_ascii':False});
 
 
--------------------------------------------------------------
------ INDICA QUIEN TE SIGUE -----
- 
-
--------------------------------------------------------------
------ INDICA QUE SIGUES A X USER -----
-def ind_sigues(request, id_solicitado):
-	 datos = Usuarios.objects.all(id = id_solicitado)
+def seguidores(request, id_solicitado):
+	datos = Follow.objects.get(idseguido = id_solicitado)
+	tokenRecibido = request.headers.get('Auth-Token')
+	datos.idseguido = Usuarios.objects.get(tokensession = tokenRecibido)
 	resultado = {
-		'Nombre': datos.nombre,
-		'NombreUser':
-		'Email':
-		'Contrasena':
-		'Apell':
-		'Edad':
-		'Genero':
-		'Pais':
-		'Biografia':
+		'idSeguidor': datos.idseguidor
 	}
 	return JsonResponse(resultado, json_dumps_params={'ensure_ascii': False})
