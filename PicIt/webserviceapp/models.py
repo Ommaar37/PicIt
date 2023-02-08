@@ -6,16 +6,6 @@
 #   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
 # Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
-from django.contrib.auth.hashers import make_password
-
-class Asignartags(models.Model):
-    idasignacion = models.AutoField(db_column='idAsignacion', primary_key=True)  # Field name made lowercase.
-    idtag = models.ForeignKey('Tags', models.DO_NOTHING, db_column='idTag')  # Field name made lowercase.
-    idpublic = models.ForeignKey('Publicaciones', models.DO_NOTHING, db_column='idPublic')  # Field name made lowercase.
-
-    class Meta:
-        managed = False
-        db_table = 'AsignarTags'
 
 
 class Carpetas(models.Model):
@@ -29,7 +19,7 @@ class Carpetas(models.Model):
 
 class Follow(models.Model):
     idfollow = models.AutoField(db_column='idFollow', primary_key=True)  # Field name made lowercase.
-    idseguidor = models.ForeignKey('Usuarios', related_name='seguidor_set', on_delete=models.CASCADE)  # Field name made lowercase.
+    idseguidor = models.ForeignKey('Usuarios', related_name='seguidor_set',on_delete=models.CASCADE)  # Field name made lowercase.
     idseguido = models.ForeignKey('Usuarios', related_name='seguido_set', on_delete=models.CASCADE)  # Field name made lowercase.
 
     class Meta:
@@ -72,6 +62,7 @@ class Publicaciones(models.Model):
     descripcion = models.CharField(db_column='Descripcion', max_length=500)  # Field name made lowercase.
     imagen = models.CharField(db_column='Imagen', max_length=10000)  # Field name made lowercase.
     iduser = models.ForeignKey('Usuarios', models.DO_NOTHING, db_column='idUser')  # Field name made lowercase.
+    idtag = models.ForeignKey('Tags', models.DO_NOTHING, db_column='idTag')  # Field name made lowercase.
 
     class Meta:
         managed = False
@@ -94,8 +85,7 @@ class Usuarios(models.Model):
     pais = models.CharField(db_column='Pais', max_length=50, blank=True, null=True)  # Field name made lowercase.
     genero = models.CharField(db_column='Genero', max_length=20, blank=True, null=True)  # Field name made lowercase.
     email = models.CharField(db_column='Email', max_length=100)  # Field name made lowercase.
-    contrasena = models.CharField(db_column='Contrasena', max_length=100)
-    def set_password(self, raw_password): self.password = make_password(raw_password)  # Field name made lowercase.
+    contrasena = models.CharField(db_column='Contrasena', max_length=30)  # Field name made lowercase.
     tokensession = models.CharField(db_column='TokenSession', max_length=300)  # Field name made lowercase.
 
     class Meta:

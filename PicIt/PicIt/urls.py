@@ -22,7 +22,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('test', views.pagina_de_prueba),
     path('publicaciones', views.mostrar_publicaciones),
-    path('publicar', views.subir_publicacion),
+    path('publicar/<int:id_tagSolicitado>', views.subir_publicacion),
     path('publicacion/<int:id_solicitado>', views.obtener_detalle_publicacion),
     path('publicacion/<int:publicacion_id>/like', views.dar_like),
     path('tags', views.obtener_tags),

@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import Publicaciones, Usuarios, Tags, Likes, Carpetas, Mensaje, Follow
+from .models import Publicaciones, PublicCarpetas, Usuarios, Tags, Likes, Carpetas, Mensaje, Follow
 import json
 import jwt
 from json import JSONDecodeError
@@ -35,16 +35,17 @@ def obtener_detalle_publicacion(request, id_solicitado):
 	}
 	return JsonResponse(resultado, json_dumps_params={'ensure_ascii':False});
 @csrf_exempt
-def subir_publicacion(request):
+def subir_publicacion(request, id_tagSolicitado):
 	if request.method !='POST':
 		return None
 	tokenRecibido = request.headers.get('Auth-Token')
 	json_peticion = json.loads(request.body)
 	publicacion = Publicaciones()
+	publicacion.iduser = Usuarios.objects.get(tokensession = tokenRecibido)
 	publicacion.titulo = json_peticion['titulo_publicacion']
 	publicacion.imagen = json_peticion['imagen_publicacion']
 	publicacion.descripcion = json_peticion['descripcion_publicacion']
-	publicacion.tags = json_peticion['tags_publicacion']
+	publicacion.idtag = Tags.objects.get(id = id_tagSolicitado)
 	publicacion.fecha = json_peticion['fecha_publicacion']
 	publicacion.save()
 	return JsonResponse({"status": "ok"})
@@ -59,14 +60,14 @@ def obtener_tags(request):
 		respuesta_final.append(diccionario)
 	return JsonResponse(respuesta_final, safe=False)
 
-
+@csrf_exempt
 def dar_like(request, publicacion_id):
 	if request.method !='PUT':
 		return None
 	tokenRecibido  = request.headers.get('Auth-Token')
 	like = Likes()
-	like.idUser =  Usuarios.objects.get(tokensession= tokenRecibido)
-	like.idPublic = Publicaciones.objects.get(id =  publicacion_id)
+	like.iduser =  Usuarios.objects.get(tokensession= tokenRecibido)
+	like.idpublic = Publicaciones.objects.get(id =  publicacion_id)
 	like.save()
 	return JsonResponse({"status": "ok"})
 
@@ -103,16 +104,16 @@ def mostrar_carpetas (request):
 		diccionario['Nombre'] = fila_carpetas_sql.nombre
 		respuesta_final.append(diccionario)
 	return JsonResponse(respuesta_final, safe=False)
-
+@csrf_exempt
 def anadir_publicacion_carpeta (request, carpeta_id):
 	if request.method != 'PATCH':
 		return None
-	
+	publicacion = Publicaciones()
 	json_peticion = json.loads(request.body)
-	post = Posts()
-	post.Posts = json_peticion['nueva_publicacion']
-	carpeta.publicacion = Publicaciones.objects.get(id = IdPublicacion)
-	comentario.save()
+	publicacionCarpeta = PublicCarpetas()
+	publicacionCarpeta.idpublic = Publicaciones.objects.get(id = json_peticion['publicacion_id'])
+	publicacionCarpeta.idcarpeta = Carpetas.objects.get(id = carpeta_id)
+	publicacionCarpeta.save()
 	return JsonResponse({'status': 'ok'})
 
 def mostrar_publicaciones_carpeta (request, id_solicitado):
@@ -195,6 +196,7 @@ def registrarUsuario(request):
             else:
                 if Usuarios.objects.filter(email=usuario.email).exists():
                     return JsonResponse({"status": "Email ya existente"}, status=409)
+                    print("hola")
                 else:
                     usuario.set_password(json_peticion['password'])
                     payload = {
@@ -259,6 +261,16 @@ def seguidores(request, id_solicitado):
 	tokenRecibido = request.headers.get('Auth-Token')
 	datos.idseguido = Usuarios.objects.get(tokensession = tokenRecibido)
 	resultado = {
-		'idSeguidor': datos.idseguidor
+		'idSeguidor': count(datos.idseguidor)
+	}
+	return JsonResponse(resultado, json_dumps_params={'ensure_ascii': False})
+
+def seguidos(request, id_solicitado):
+	usuario = Usuarios.objects.get(id = id_solicitado)
+	datos = Follow.objects.get(idseguido = usuario.id)
+	tokenRecibido = request.headers.get('Auth-Token')
+	datos.idseguido = Usuarios.objects.get(tokensession = tokenRecibido)
+	resultado = {
+		'idSeguidor':count( datos.idseguido)
 	}
 	return JsonResponse(resultado, json_dumps_params={'ensure_ascii': False})
