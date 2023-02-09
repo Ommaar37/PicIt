@@ -83,15 +83,16 @@ def obtener_like(request):
 		diccionario['publicacion']= fila_sql.idPublic
 		respuesta_final.append(diccionario)
 	return JsonResponse(respuesta_final, safe = False)
-
+@csrf_exempt
 def crear_carpeta (request):
 	if request.method != 'POST':
 		return None
-	
+	TokenRecibido = request.headers.get('Auth-Token')
 	json_peticion = json.loads(request.body)
-	folder = Folders()
-	folder.folder = json_peticion['nueva_carpeta']
-	carpeta.publicacion = Publicaciones.objects.get(id = IdPublicacion)
+	carpeta = Carpetas()
+	carpeta.nombre = json_peticion['nueva_carpeta']
+	aux = Usuarios.objects.get(tokensession = TokenRecibido)
+	carpeta.iduser = aux
 	carpeta.save()
 	return JsonResponse({'status': 'ok'})
 
