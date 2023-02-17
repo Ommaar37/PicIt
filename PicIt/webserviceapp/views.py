@@ -11,7 +11,7 @@ from django.contrib.auth.hashers import check_password
 @csrf_exempt
 def pagina_de_prueba(request):
 	return HttpResponse("<h1>Hola caracola</h1>");
-#GET QUE OBTIENE LAS PUBLICACIONES SUBIDAS.
+#OMAR--GET QUE OBTIENE LAS PUBLICACIONES SUBIDAS.
 def mostrar_publicaciones(request):
 	lista=Publicaciones.objects.all()
 	respuesta_final = []
@@ -23,7 +23,7 @@ def mostrar_publicaciones(request):
 		respuesta_final.append(diccionario)
 	return JsonResponse(respuesta_final, safe=False)
 
-#GET QUE OBTIENE LOS DETALLES DE UNA PUBLICACIÓN AL QUE SE LE PASA EL ID DE LA MISMA
+#ELENA--GET QUE OBTIENE LOS DETALLES DE UNA PUBLICACIÓN AL QUE SE LE PASA EL ID DE LA MISMA
 def obtener_detalle_publicacion(request, id_solicitado):
 	publicacion = Publicaciones.objects.get(id = id_solicitado)
 	resultado = {
@@ -35,7 +35,7 @@ def obtener_detalle_publicacion(request, id_solicitado):
 	}
 	return JsonResponse(resultado, json_dumps_params={'ensure_ascii':False});
 
-#POST QUE SUBE LAS PUBLICACIONES DÁNDOLES UN ID, LE HAY QUE INTRODUCIR TITULO, IMAGEN, DESCRIPCIÓN Y TAMBIÉN SE LE DA FECHA
+#ELENA--POST QUE SUBE LAS PUBLICACIONES DÁNDOLES UN ID, LE HAY QUE INTRODUCIR TITULO, IMAGEN, DESCRIPCIÓN Y TAMBIÉN SE LE DA FECHA
 @csrf_exempt
 def subir_publicacion(request, id_tagSolicitado):
 	if request.method !='POST':
@@ -52,7 +52,7 @@ def subir_publicacion(request, id_tagSolicitado):
 	publicacion.save()
 	return JsonResponse({"status": "ok"})
 
-#MÉTODO GET QUE OBTIENE LOS TAGS
+#ELENA--MÉTODO GET QUE OBTIENE LOS TAGS
 def obtener_tags(request):
 	lista= Tags.objects.all()
 	respuesta_final=[]
@@ -63,7 +63,7 @@ def obtener_tags(request):
 		respuesta_final.append(diccionario)
 	return JsonResponse(respuesta_final, safe=False)
 
-#POST QUE SIRVE PARA DARLE LIKES A PUBLICACIONES
+#ELENA--POST QUE SIRVE PARA DARLE LIKES A PUBLICACIONES
 @csrf_exempt
 def dar_like(request, publicacion_id):
 	if request.method !='PUT':
@@ -75,7 +75,7 @@ def dar_like(request, publicacion_id):
 	like.save()
 	return JsonResponse({"status": "ok"})
 
-#GET QUE OBTIENE EL NÚMERO DE LIKES DADOS A UN USER EN CONCRETO.
+#OMAR--GET QUE OBTIENE EL NÚMERO DE LIKES DADOS A UN USER EN CONCRETO.
 def obtener_like(request):
 	lista=Likes.objects.all()
 	tokenRecibido = request.headers.get('Auth-Token')
@@ -89,7 +89,7 @@ def obtener_like(request):
 		respuesta_final.append(diccionario)
 	return JsonResponse(respuesta_final, safe = False)
 
-#POST QUE CREA CARPETA
+#ELENA--POST QUE CREA CARPETA
 @csrf_exempt
 def crear_carpeta (request):
 	#COMPROBACIÓN DEL MÉTODO
@@ -104,7 +104,7 @@ def crear_carpeta (request):
 	carpeta.save()
 	return JsonResponse({'status': 'ok'})
 
-#GET QUE OBTIENE LOS DATOS DE CADA CARPETA Y LO MUESTRA
+#OMAR--GET QUE OBTIENE LOS DATOS DE CADA CARPETA Y LO MUESTRA
 def mostrar_carpetas (request):
 	lista=Carpetas.objects.all()
 	respuesta_final = []
@@ -115,7 +115,7 @@ def mostrar_carpetas (request):
 		respuesta_final.append(diccionario)
 	return JsonResponse(respuesta_final, safe=False)
 
-#PATCH QUE AÑADE UNA PUBLICACIÓN (UTILIZANDO SU ID) A UNA CARPETA DETERMINADA (UTILIZANDO SU ID)
+#ELENA--PATCH QUE AÑADE UNA PUBLICACIÓN (UTILIZANDO SU ID) A UNA CARPETA DETERMINADA (UTILIZANDO SU ID)
 @csrf_exempt
 def anadir_publicacion_carpeta (request, carpeta_id):
 	#COMPROBACIÓN DEL MÉTODO
@@ -129,7 +129,7 @@ def anadir_publicacion_carpeta (request, carpeta_id):
 	publicacionCarpeta.save()
 	return JsonResponse({'status': 'ok'})
 
-#GET QUE OBTIENE LOS DATOS DE UNA CARPETA, SACA CADA IMAGEN, CADA TITULO, CADA DESC Y FECHA
+#OMAR--GET QUE OBTIENE LOS DATOS DE UNA CARPETA, SACA CADA IMAGEN, CADA TITULO, CADA DESC Y FECHA
 def mostrar_publicaciones_carpeta (request, id_solicitado):
 	carpeta = Carpetas.objects.get(id = id_solicitado)
 	publicacion = carpeta.Publicaciones_set.all()
@@ -150,7 +150,7 @@ def mostrar_publicaciones_carpeta (request, id_solicitado):
 	
 	return JsonResponse(resultado, json_dimps_params={'ensure_ascii': False})
 
-#GET QUE OBTIENE LOS AMIGOS PARA DETERMINADO USER
+#BET--GET QUE OBTIENE LOS AMIGOS PARA DETERMINADO USER
 def listar_amigos (request):
 	lista = Follow.objects.all()
 	tokenRecibido = request.headers.get('Auth-Token')
@@ -162,7 +162,7 @@ def listar_amigos (request):
 		respuesta_final.append(diccionario)
 	return JsonResponse(respuesta_final, safe=False)
 
-#POST QUE ENVÍA MENSAJE A LA BASE DED DATOS MENSAJE, TAMBIÉN GUARDA EL USER
+#BET--POST QUE ENVÍA MENSAJE A LA BASE DED DATOS MENSAJE, TAMBIÉN GUARDA EL USER
 def enviar_mensaje (request):
 	#COMPROBACIÓN DEL MÉTODO
 	if request.method != 'POST':
@@ -175,7 +175,7 @@ def enviar_mensaje (request):
 	message.save()
 	return JsonResponse({'status': 'ok'})
 
-#GET QUE RECUPERA LOS MENSAJES DEL CHAT
+#BET--GET QUE RECUPERA LOS MENSAJES DEL CHAT
 def mostrar_mensajes_chat_concreto (request, id_solicitado):
 	usuario = Usuarios.object.get(id = id_solicitado)
 	mensaje = usuario.Mensajes_set.all()
@@ -194,7 +194,7 @@ def mostrar_mensajes_chat_concreto (request, id_solicitado):
 	
 	return JsonResponse(resultado, json_dimps_params={'ensure_ascii': False})
 
-#POST QUE REGISTRA LOS USUARIOS Y LOS AÑADE DENTRO DE LA  BASE DE DATOS
+#BET--POST QUE REGISTRA LOS USUARIOS Y LOS AÑADE DENTRO DE LA  BASE DE DATOS
 @csrf_exempt
 def registrarUsuario(request):
 	#COMPROBACIÓN DEL MÉTODO
@@ -235,7 +235,7 @@ def registrarUsuario(request):
         return JsonResponse({"status": "Error"})
 
 
-#GET QUE OBTIENE LOS DATOS EDITABLES DENTRO DE UN USER
+#BET--GET QUE OBTIENE LOS DATOS EDITABLES DENTRO DE UN USER
 def datos_editar(request, id_solicitado):
 	datos = Usuarios.objects.get(id = id_solicitado)
 	resultado = {
@@ -250,7 +250,7 @@ def datos_editar(request, id_solicitado):
 	}
 	return JsonResponse(resultado, json_dumps_params={'ensure_ascii':False});
 
-#POST PARA APLICAR LOS CAMBIOS REALIZADOS A NUESTRO USER
+#BET--POST PARA APLICAR LOS CAMBIOS REALIZADOS A NUESTRO USER
 @csrf_exempt
 def aplicar_edicion(request):
 	if request.method !='POST':
@@ -270,7 +270,7 @@ def aplicar_edicion(request):
 	usuario.save()
 	return JsonResponse({"status": "ok"})
 
-#GET QUE OBTIENE LOS DATOS DE UN USER
+#BET--GET QUE OBTIENE LOS DATOS DE UN USER
 def datos_user(request, id_solicitado):
 	datos = Usuarios.objects.get(id = id_solicitado) 
 	resultado = {
@@ -279,7 +279,7 @@ def datos_user(request, id_solicitado):
 	}
 	return JsonResponse(resultado, json_dumps_params={'ensure_ascii':False});
 
-#GET OBTIENE LOS SEGUIDORES DE UN USUARIO
+#OMAR--GET OBTIENE LOS SEGUIDORES DE UN USUARIO
 def seguidores(request, id_solicitado):
 	datos = Follow.objects.get(idseguido = id_solicitado)
 	tokenRecibido = request.headers.get('Auth-Token')
@@ -289,7 +289,7 @@ def seguidores(request, id_solicitado):
 	}
 	return JsonResponse(resultado, json_dumps_params={'ensure_ascii': False})
 
-#GET QUE OBTIENE LOS SEGUIDOS
+#OMAR--GET QUE OBTIENE LOS SEGUIDOS
 def seguidos(request, id_solicitado):
 	usuario = Usuarios.objects.get(id = id_solicitado)
 	datos = Follow.objects.get(idseguido = usuario.id)
@@ -300,7 +300,7 @@ def seguidos(request, id_solicitado):
 	}
 	return JsonResponse(resultado, json_dumps_params={'ensure_ascii': False})
 
-#POST PARA LAS SESIONES.
+#BET--POST PARA LAS SESIONES.
 @csrf_exempt
 def sessions(r):
     # Si el método es POST, se intenta crear una nueva sesión
