@@ -63,7 +63,7 @@ def obtener_tags(request):
 		respuesta_final.append(diccionario)
 	return JsonResponse(respuesta_final, safe=False)
 
-#ELENA--POST QUE SIRVE PARA DARLE LIKES A PUBLICACIONES
+#OMAR--POST QUE SIRVE PARA DARLE LIKES A PUBLICACIONES
 @csrf_exempt
 def dar_like(request, publicacion_id):
 	if request.method !='PUT':
@@ -89,7 +89,7 @@ def obtener_like(request):
 		respuesta_final.append(diccionario)
 	return JsonResponse(respuesta_final, safe = False)
 
-#ELENA--POST QUE CREA CARPETA
+#OMAR--POST QUE CREA CARPETA
 @csrf_exempt
 def crear_carpeta (request):
 	#COMPROBACIÓN DEL MÉTODO
@@ -279,7 +279,7 @@ def datos_user(request, id_solicitado):
 	}
 	return JsonResponse(resultado, json_dumps_params={'ensure_ascii':False});
 
-#OMAR--GET OBTIENE LOS SEGUIDORES DE UN USUARIO
+#ELENA--GET OBTIENE LOS SEGUIDORES DE UN USUARIO
 def seguidores(request, id_solicitado):
 	datos = Follow.objects.get(idseguido = id_solicitado)
 	tokenRecibido = request.headers.get('Auth-Token')
@@ -289,7 +289,7 @@ def seguidores(request, id_solicitado):
 	}
 	return JsonResponse(resultado, json_dumps_params={'ensure_ascii': False})
 
-#OMAR--GET QUE OBTIENE LOS SEGUIDOS
+#ELENA--GET QUE OBTIENE LOS SEGUIDOS
 def seguidos(request, id_solicitado):
 	usuario = Usuarios.objects.get(id = id_solicitado)
 	datos = Follow.objects.get(idseguido = usuario.id)
