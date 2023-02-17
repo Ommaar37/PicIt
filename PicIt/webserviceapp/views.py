@@ -23,46 +23,6 @@ def mostrar_publicaciones(request):
 		respuesta_final.append(diccionario)
 	return JsonResponse(respuesta_final, safe=False)
 
-#ELENA--GET QUE OBTIENE LOS DETALLES DE UNA PUBLICACIÓN AL QUE SE LE PASA EL ID DE LA MISMA
-def obtener_detalle_publicacion(request, id_solicitado):
-	publicacion = Publicaciones.objects.get(id = id_solicitado)
-	resultado = {
-		'id':publicacion.id,
-		'titulo': publicacion.titulo,
-		'imagen': publicacion.imagen,
-		'descripcion': publicacion.descripcion,
-		'fecha': publicacion.fecha
-	}
-	return JsonResponse(resultado, json_dumps_params={'ensure_ascii':False});
-
-#ELENA--POST QUE SUBE LAS PUBLICACIONES DÁNDOLES UN ID, LE HAY QUE INTRODUCIR TITULO, IMAGEN, DESCRIPCIÓN Y TAMBIÉN SE LE DA FECHA
-@csrf_exempt
-def subir_publicacion(request, id_tagSolicitado):
-	if request.method !='POST':
-		return None
-	tokenRecibido = request.headers.get('Auth-Token')
-	json_peticion = json.loads(request.body)
-	publicacion = Publicaciones()
-	publicacion.iduser = Usuarios.objects.get(tokensession = tokenRecibido)
-	publicacion.titulo = json_peticion['titulo_publicacion']
-	publicacion.imagen = json_peticion['imagen_publicacion']
-	publicacion.descripcion = json_peticion['descripcion_publicacion']
-	publicacion.idtag = Tags.objects.get(id = id_tagSolicitado)
-	publicacion.fecha = json_peticion['fecha_publicacion']
-	publicacion.save()
-	return JsonResponse({"status": "ok"})
-
-#ELENA--MÉTODO GET QUE OBTIENE LOS TAGS
-def obtener_tags(request):
-	lista= Tags.objects.all()
-	respuesta_final=[]
-	
-	for fila_tags_sql in lista:
-		diccionario = {}
-		diccionario['Nombre'] = fila_tags_sql.nombre
-		respuesta_final.append(diccionario)
-	return JsonResponse(respuesta_final, safe=False)
-
 #OMAR--POST QUE SIRVE PARA DARLE LIKES A PUBLICACIONES
 @csrf_exempt
 def dar_like(request, publicacion_id):
@@ -115,20 +75,6 @@ def mostrar_carpetas (request):
 		respuesta_final.append(diccionario)
 	return JsonResponse(respuesta_final, safe=False)
 
-#ELENA--PATCH QUE AÑADE UNA PUBLICACIÓN (UTILIZANDO SU ID) A UNA CARPETA DETERMINADA (UTILIZANDO SU ID)
-@csrf_exempt
-def anadir_publicacion_carpeta (request, carpeta_id):
-	#COMPROBACIÓN DEL MÉTODO
-	if request.method != 'PATCH':
-		return None
-	publicacion = Publicaciones()
-	json_peticion = json.loads(request.body)
-	publicacionCarpeta = PublicCarpetas()
-	publicacionCarpeta.idpublic = Publicaciones.objects.get(id = json_peticion['publicacion_id'])
-	publicacionCarpeta.idcarpeta = Carpetas.objects.get(id = carpeta_id)
-	publicacionCarpeta.save()
-	return JsonResponse({'status': 'ok'})
-
 #OMAR--GET QUE OBTIENE LOS DATOS DE UNA CARPETA, SACA CADA IMAGEN, CADA TITULO, CADA DESC Y FECHA
 def mostrar_publicaciones_carpeta (request, id_solicitado):
 	carpeta = Carpetas.objects.get(id = id_solicitado)
@@ -149,6 +95,85 @@ def mostrar_publicaciones_carpeta (request, id_solicitado):
 	}
 	
 	return JsonResponse(resultado, json_dimps_params={'ensure_ascii': False})
+
+
+#ELENA--GET QUE OBTIENE LOS DETALLES DE UNA PUBLICACIÓN AL QUE SE LE PASA EL ID DE LA MISMA
+def obtener_detalle_publicacion(request, id_solicitado):
+	publicacion = Publicaciones.objects.get(id = id_solicitado)
+	resultado = {
+		'id':publicacion.id,
+		'titulo': publicacion.titulo,
+		'imagen': publicacion.imagen,
+		'descripcion': publicacion.descripcion,
+		'fecha': publicacion.fecha
+	}
+	return JsonResponse(resultado, json_dumps_params={'ensure_ascii':False});
+
+#ELENA--POST QUE SUBE LAS PUBLICACIONES DÁNDOLES UN ID, LE HAY QUE INTRODUCIR TITULO, IMAGEN, DESCRIPCIÓN Y TAMBIÉN SE LE DA FECHA
+@csrf_exempt
+def subir_publicacion(request, id_tagSolicitado):
+	if request.method !='POST':
+		return None
+	tokenRecibido = request.headers.get('Auth-Token')
+	json_peticion = json.loads(request.body)
+	publicacion = Publicaciones()
+	publicacion.iduser = Usuarios.objects.get(tokensession = tokenRecibido)
+	publicacion.titulo = json_peticion['titulo_publicacion']
+	publicacion.imagen = json_peticion['imagen_publicacion']
+	publicacion.descripcion = json_peticion['descripcion_publicacion']
+	publicacion.idtag = Tags.objects.get(id = id_tagSolicitado)
+	publicacion.fecha = json_peticion['fecha_publicacion']
+	publicacion.save()
+	return JsonResponse({"status": "ok"})
+
+#ELENA--MÉTODO GET QUE OBTIENE LOS TAGS
+def obtener_tags(request):
+	lista= Tags.objects.all()
+	respuesta_final=[]
+	
+	for fila_tags_sql in lista:
+		diccionario = {}
+		diccionario['Nombre'] = fila_tags_sql.nombre
+		respuesta_final.append(diccionario)
+	return JsonResponse(respuesta_final, safe=False)
+
+
+
+#ELENA--PATCH QUE AÑADE UNA PUBLICACIÓN (UTILIZANDO SU ID) A UNA CARPETA DETERMINADA (UTILIZANDO SU ID)
+@csrf_exempt
+def anadir_publicacion_carpeta (request, carpeta_id):
+	#COMPROBACIÓN DEL MÉTODO
+	if request.method != 'PATCH':
+		return None
+	publicacion = Publicaciones()
+	json_peticion = json.loads(request.body)
+	publicacionCarpeta = PublicCarpetas()
+	publicacionCarpeta.idpublic = Publicaciones.objects.get(id = json_peticion['publicacion_id'])
+	publicacionCarpeta.idcarpeta = Carpetas.objects.get(id = carpeta_id)
+	publicacionCarpeta.save()
+	return JsonResponse({'status': 'ok'})
+
+
+#ELENA--GET OBTIENE LOS SEGUIDORES DE UN USUARIO
+def seguidores(request, id_solicitado):
+	datos = Follow.objects.get(idseguido = id_solicitado)
+	tokenRecibido = request.headers.get('Auth-Token')
+	datos.idseguido = Usuarios.objects.get(tokensession = tokenRecibido)
+	resultado = {
+		'idSeguidor': count(datos.idseguidor)
+	}
+	return JsonResponse(resultado, json_dumps_params={'ensure_ascii': False})
+
+#ELENA--GET QUE OBTIENE LOS SEGUIDOS
+def seguidos(request, id_solicitado):
+	usuario = Usuarios.objects.get(id = id_solicitado)
+	datos = Follow.objects.get(idseguido = usuario.id)
+	tokenRecibido = request.headers.get('Auth-Token')
+	datos.idseguido = Usuarios.objects.get(tokensession = tokenRecibido)
+	resultado = {
+		'idSeguidor':count( datos.idseguido)
+	}
+	return JsonResponse(resultado, json_dumps_params={'ensure_ascii': False})
 
 #BET--GET QUE OBTIENE LOS AMIGOS PARA DETERMINADO USER
 def listar_amigos (request):
@@ -279,26 +304,6 @@ def datos_user(request, id_solicitado):
 	}
 	return JsonResponse(resultado, json_dumps_params={'ensure_ascii':False});
 
-#ELENA--GET OBTIENE LOS SEGUIDORES DE UN USUARIO
-def seguidores(request, id_solicitado):
-	datos = Follow.objects.get(idseguido = id_solicitado)
-	tokenRecibido = request.headers.get('Auth-Token')
-	datos.idseguido = Usuarios.objects.get(tokensession = tokenRecibido)
-	resultado = {
-		'idSeguidor': count(datos.idseguidor)
-	}
-	return JsonResponse(resultado, json_dumps_params={'ensure_ascii': False})
-
-#ELENA--GET QUE OBTIENE LOS SEGUIDOS
-def seguidos(request, id_solicitado):
-	usuario = Usuarios.objects.get(id = id_solicitado)
-	datos = Follow.objects.get(idseguido = usuario.id)
-	tokenRecibido = request.headers.get('Auth-Token')
-	datos.idseguido = Usuarios.objects.get(tokensession = tokenRecibido)
-	resultado = {
-		'idSeguidor':count( datos.idseguido)
-	}
-	return JsonResponse(resultado, json_dumps_params={'ensure_ascii': False})
 
 #BET--POST PARA LAS SESIONES.
 @csrf_exempt
