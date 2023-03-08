@@ -9,7 +9,7 @@ CREATE TABLE Usuarios(
     Pais varchar(50) null,
     Genero varchar(20) null,
     Email varchar(100) not null,
-    Contrasena varchar(30) not null,
+    Contrasena varchar(256) not null,
     TokenSession varchar(300) not null
     
 );

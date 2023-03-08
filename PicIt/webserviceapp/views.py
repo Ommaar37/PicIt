@@ -5,13 +5,106 @@ from .models import Publicaciones, PublicCarpetas, Usuarios, Tags, Likes, Carpet
 import json
 import jwt
 from json import JSONDecodeError
-from django.contrib.auth.hashers import check_password
+from datetime import date
+from django.contrib.auth.hashers import check_password, make_password
+from django.db import models
+from django.core.exceptions import ObjectDoesNotExist
 
-# Create your views here.
 @csrf_exempt
 def pagina_de_prueba(request):
 	return HttpResponse("<h1>Hola caracola</h1>");
+
+@csrf_exempt
+def registrarUsuario(request):
+    if request.method == 'POST':
+        try:
+            json_peticion = json.loads(request.body)
+            usuario = Usuarios()
+            usuario.nombreuser = json_peticion['username']
+            usuario.email = json_peticion['email']
+            usuario.contrasena = json_peticion['password']
+            if usuario.nombreuser == '' or usuario.email == '' or usuario.contrasena == '':
+                return JsonResponse({"status": "Faltan parámetros"}, status=400)
+            else:
+                if Usuarios.objects.filter(nombreuser=usuario.nombreuser).exists():
+                    return JsonResponse({"status": "Nombre de usuario ya existente"}, status=409)
+                else:
+                    if Usuarios.objects.filter(email=usuario.email).exists():
+                        return JsonResponse({"status": "Email ya existente"}, status=409)
+                    else:
+                        usuario.set_password(json_peticion['password'])
+                        payload = {
+                            'NombreUsuario': usuario.nombreuser,
+                            'Email': usuario.email
+                        }
+                        secret = 'abc123'
+                        token = jwt.encode(payload, secret, algorithm='HS256')
+                        usuario.tokensession = token
+                        usuario.save()
+                        return JsonResponse({"status": "ok"}, status=201)
+        except (JSONDecodeError, Exception):
+            return JsonResponse({"status": "Error"})
+
+@csrf_exempt
+def sessions(request):
+    if request.method == "POST":
+        user = Usuarios()
+        try:
+            json_peticion = json.loads(request.body)
+        except json.decoder.JSONDecodeError:
+            return JsonResponse({"message": "Bad request"}, status=400)
+        try:
+            user = Usuarios.objects.get(email=json_peticion["email"])
+        except ObjectDoesNotExist:
+            return JsonResponse({"message": "Not found"}, status=404)
+        contrasena = json_peticion["password"]
+        user.set_password(contrasena)
+        if check_password(contrasena, user.contrasena):
+            payload = {
+                'NombreUser': user.nombreuser,
+                'Email': user.email
+            }
+            secret = 'abc123'
+            token = jwt.encode(payload, secret, algorithm='HS256')
+            user.token = token
+            user.save()
+            return JsonResponse({"sessionToken": token}, status=200)
+        else:
+            return JsonResponse({'error': 'Unauthorized'}, status=401)
+
+@csrf_exempt
+def enviar_mensaje (request, usuario_id):
+        if request.method == 'POST':
+            json_peticion = json.loads(request.body)
+            mensajes = Mensaje()
+            mensajes.mensaje = json_peticion['nuevo_mensaje']
+            mensajes.iduser = Usuarios.objects.get(id=usuario_id)
+            mensajes.fecha = date.today()
+            mensajes.save()
+            return JsonResponse({'status': 'ok'})
+
+@csrf_exempt
+def mostrar_mensajes_chat_concreto (request, id_solicitado):
+        usuario = Usuarios.objects.get(id = id_solicitado)
+        mensajes = usuario.mensaje_set.all()
+        lista_mensajes = []
+        for fila_mensajes_sql in mensajes:
+                diccionario = {}
+                diccionario['id'] = fila_mensajes_sql.id
+                diccionario['mensaje'] = fila_mensajes_sql.mensaje
+                diccionario['fecha'] = fila_mensajes_sql.fecha
+                lista_mensajes.append(diccionario)
+        resultado = {
+                'id': usuario.id,
+                'username': usuario.nombreuser,
+                'mensajes': lista_mensajes
+        }
+        return JsonResponse(resultado, json_dumps_params={'ensure_ascii': False})
+
+#------------------------------------------------------------------------------------------------
+
 #OMAR--GET QUE OBTIENE LAS PUBLICACIONES SUBIDAS.
+@csrf_exempt
 def mostrar_publicaciones(request):
 	lista=Publicaciones.objects.all()
 	respuesta_final = []
@@ -36,6 +129,7 @@ def dar_like(request, publicacion_id):
 	return JsonResponse({"status": "ok"})
 
 #OMAR--GET QUE OBTIENE EL NÚMERO DE LIKES DADOS A UN USER EN CONCRETO.
+@csrf_exempt
 def obtener_like(request):
 	lista=Likes.objects.all()
 	tokenRecibido = request.headers.get('Auth-Token')
@@ -65,6 +159,7 @@ def crear_carpeta (request):
 	return JsonResponse({'status': 'ok'})
 
 #OMAR--GET QUE OBTIENE LOS DATOS DE CADA CARPETA Y LO MUESTRA
+@csrf_exempt
 def mostrar_carpetas (request):
 	lista=Carpetas.objects.all()
 	respuesta_final = []
@@ -76,6 +171,7 @@ def mostrar_carpetas (request):
 	return JsonResponse(respuesta_final, safe=False)
 
 #OMAR--GET QUE OBTIENE LOS DATOS DE UNA CARPETA, SACA CADA IMAGEN, CADA TITULO, CADA DESC Y FECHA
+@csrf_exempt
 def mostrar_publicaciones_carpeta (request, id_solicitado):
 	carpeta = Carpetas.objects.get(id = id_solicitado)
 	publicacion = carpeta.Publicaciones_set.all()
@@ -98,6 +194,7 @@ def mostrar_publicaciones_carpeta (request, id_solicitado):
 
 
 #ELENA--GET QUE OBTIENE LOS DETALLES DE UNA PUBLICACIÓN AL QUE SE LE PASA EL ID DE LA MISMA
+@csrf_exempt
 def obtener_detalle_publicacion(request, id_solicitado):
 	publicacion = Publicaciones.objects.get(id = id_solicitado)
 	resultado = {
@@ -127,6 +224,7 @@ def subir_publicacion(request, id_tagSolicitado):
 	return JsonResponse({"status": "ok"})
 
 #ELENA--MÉTODO GET QUE OBTIENE LOS TAGS
+@csrf_exempt
 def obtener_tags(request):
 	lista= Tags.objects.all()
 	respuesta_final=[]
@@ -155,6 +253,7 @@ def anadir_publicacion_carpeta (request, carpeta_id):
 
 
 #ELENA--GET OBTIENE LOS SEGUIDORES DE UN USUARIO
+@csrf_exempt
 def seguidores(request, id_solicitado):
 	datos = Follow.objects.get(idseguido = id_solicitado)
 	tokenRecibido = request.headers.get('Auth-Token')
@@ -165,6 +264,7 @@ def seguidores(request, id_solicitado):
 	return JsonResponse(resultado, json_dumps_params={'ensure_ascii': False})
 
 #ELENA--GET QUE OBTIENE LOS SEGUIDOS
+@csrf_exempt
 def seguidos(request, id_solicitado):
 	usuario = Usuarios.objects.get(id = id_solicitado)
 	datos = Follow.objects.get(idseguido = usuario.id)
@@ -176,6 +276,7 @@ def seguidos(request, id_solicitado):
 	return JsonResponse(resultado, json_dumps_params={'ensure_ascii': False})
 
 #BET--GET QUE OBTIENE LOS AMIGOS PARA DETERMINADO USER
+@csrf_exempt
 def listar_amigos (request):
 	lista = Follow.objects.all()
 	tokenRecibido = request.headers.get('Auth-Token')
@@ -187,80 +288,8 @@ def listar_amigos (request):
 		respuesta_final.append(diccionario)
 	return JsonResponse(respuesta_final, safe=False)
 
-#BET--POST QUE ENVÍA MENSAJE A LA BASE DED DATOS MENSAJE, TAMBIÉN GUARDA EL USER
-def enviar_mensaje (request):
-	#COMPROBACIÓN DEL MÉTODO
-	if request.method != 'POST':
-		return None
-	
-	json_peticion = json.loads(request.body)
-	message = Messages()
-	message.message = json_peticion['nuevo_mensaje']
-	message.user = Publicaciones.objects.get(id = idUser)
-	message.save()
-	return JsonResponse({'status': 'ok'})
-
-#BET--GET QUE RECUPERA LOS MENSAJES DEL CHAT
-def mostrar_mensajes_chat_concreto (request, id_solicitado):
-	usuario = Usuarios.object.get(id = id_solicitado)
-	mensaje = usuario.Mensajes_set.all()
-	lista_mensajes = []
-	for fila_mensajes_sql in mensajes:
-		diccionario = {}
-		diccionario['Id'] = fila_publicaciones_sql.id
-		diccionario['Mensaje'] = fila_publicaciones_sql.mensaje
-		diccionario['Fecha'] = fila_publicaciones_sql.fecha
-		lista_mensajes.append(diccionario)
-	resultado = {
-		'Id': carpeta.id,
-		'Username': carpeta.username,
-		'Mensajes': usuario.lista_mensajes
-	}
-	
-	return JsonResponse(resultado, json_dimps_params={'ensure_ascii': False})
-
-#BET--POST QUE REGISTRA LOS USUARIOS Y LOS AÑADE DENTRO DE LA  BASE DE DATOS
-@csrf_exempt
-def registrarUsuario(request):
-	#COMPROBACIÓN DEL MÉTODO
-    if request.method != 'POST':
-        return None
-    try:
-        json_peticion = json.loads(request.body)
-        usuario = Usuarios()
-        usuario.nombre = json_peticion['name']
-        usuario.email = json_peticion['email']
-        usuario.contrasena = json_peticion['password']
-	#COMPRUEBA QUE NO FALTA NINGÚN PARÁMETRO NECESARIO
-        if usuario.nombre == '' or usuario.email == '' or usuario.contrasena == '':
-            return JsonResponse({"status": "Faltan parámetros"}, status=400)
-        else:
-		#COMPRUEBA QUE EL NOMBRE DE USUARIO NO COINCIDE CON NINGUNO DE LA BASE DE DATOS
-            if Usuarios.objects.filter(nombre=usuario.nombre).exists():
-                return JsonResponse({"status": "Nombre de usuario ya existente"}, status=409)
-            else:
-			#COMPRUEBA QUE EL MAIL NO COINCIDE CON NINGUNO DE LA BASE DE DATOS
-                if Usuarios.objects.filter(email=usuario.email).exists():
-                    return JsonResponse({"status": "Email ya existente"}, status=409)
-                    print("hola")
-                else:
-			#SI TODO LO ANTERIOR NO OCURRE, SE REGISTRA CORRECTAMENTE
-                    usuario.set_password(json_peticion['password'])
-                    payload = {
-                        'nombre': usuario.nombre,
-                        'email': usuario.email
-                    }
-                   #TOKENS PARA CONTRASEÑA
-                    secret = 'messifiltrado'
-                    token = jwt.encode(payload, secret, algorithm='HS256')
-                    usuario.tokensession = token
-                    usuario.save()
-                    return JsonResponse({"status": "Bien."}, status=201)
-    except (JSONDecodeError, Exception):
-        return JsonResponse({"status": "Error"})
-
-
 #BET--GET QUE OBTIENE LOS DATOS EDITABLES DENTRO DE UN USER
+@csrf_exempt
 def datos_editar(request, id_solicitado):
 	datos = Usuarios.objects.get(id = id_solicitado)
 	resultado = {
@@ -296,6 +325,7 @@ def aplicar_edicion(request):
 	return JsonResponse({"status": "ok"})
 
 #BET--GET QUE OBTIENE LOS DATOS DE UN USER
+@csrf_exempt
 def datos_user(request, id_solicitado):
 	datos = Usuarios.objects.get(id = id_solicitado) 
 	resultado = {
@@ -305,39 +335,3 @@ def datos_user(request, id_solicitado):
 	return JsonResponse(resultado, json_dumps_params={'ensure_ascii':False});
 
 
-#BET--POST PARA LAS SESIONES.
-@csrf_exempt
-def sessions(r):
-    # Si el método es POST, se intenta crear una nueva sesión
-    if r.method == "POST":
-
-        # Se intenta obtener el cuerpo de la petición
-        try:
-            data = json.loads(r.body)
-        except json.decoder.JSONDecodeError:
-            return JsonResponse({"message": "Bad request"}, status=400)
-
-        # Se intenta obtener el usuario de la BBDD con los datos obtenidos
-        try:
-            user = Users.objects.get(email=data["email"])
-        except ObjectDoesNotExist:
-            return JsonResponse({"message": "Not found"}, status=404)
-
-        # Se intenta verificar la contraseña
-        if user.check_password(data["password"]):
-            # Se genera el token
-            token_string = get_random_string(length=32)
-            new_token = Tokens()
-            new_token.token = token_string
-            new_token.userid = user
-            new_token.save()
-
-            # Se devuelve un 201
-            return JsonResponse(
-                {"sessionToken": token_string},
-                json_dumps_params={"ensure_ascii": False},
-                status=201,
-            )
-        else:
-            # Se devuelve 401
-            return JsonResponse({"message": "Unauthorized"}, status=401)
